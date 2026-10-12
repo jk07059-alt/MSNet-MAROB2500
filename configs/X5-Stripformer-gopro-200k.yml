@@ -1,0 +1,90 @@
+# Training config for the GoPro cross-dataset no-regression study (BasicSR YAML).
+# See the README "Config -> paper mapping" table for this experiment's role.
+name: X5-Stripformer-gopro-200k
+model_type: ImageRestorationModel
+scale: 1
+num_gpu: 3
+manual_seed: 42
+
+datasets:
+  train:
+    name: gopro-train
+    type: PairedImageDataset
+    dataroot_gt: datasets/GoPro/train/sharp
+    dataroot_lq: datasets/GoPro/train/blur
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+    gt_size: 256
+    use_flip: true
+    use_rot: true
+
+    use_shuffle: true
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 4          # Stripformer (transformer, ~19.7M) is heavier; 4x3=12 effective
+    dataset_enlarge_ratio: 1
+    prefetch_mode: ~
+
+  val:
+    name: gopro-test
+    type: PairedImageDataset
+    dataroot_gt: datasets/GoPro/test/sharp
+    dataroot_lq: datasets/GoPro/test/blur
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+network_g:
+  type: StripformerWrap
+
+path:
+  pretrain_network_g: ~
+  strict_load_g: true
+  resume_state: ~
+
+train:
+  use_grad_clip: false
+  optim_g:
+    type: AdamW
+    lr: !!float 3e-4              # Stripformer-appropriate LR (below NAFNet's 1e-3)
+    weight_decay: !!float 1e-3
+    betas: [0.9, 0.9]
+
+  scheduler:
+    type: TrueCosineAnnealingLR
+    T_max: 200000
+    eta_min: !!float 1e-7
+
+  total_iter: 200000
+  warmup_iter: -1
+
+  pixel_opt:
+    type: PSNRLoss
+    loss_weight: 1
+    reduction: mean
+
+val:
+  val_freq: !!float 20000
+  save_img: false
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false
+
+logger:
+  print_freq: 200
+  save_checkpoint_freq: !!float 20000
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~
+
+dist_params:
+  backend: nccl
+  port: 29611

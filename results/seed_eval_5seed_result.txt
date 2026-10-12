@@ -1,0 +1,25 @@
+=== 3-seed TEST eval (250 imgs), all @200k, single-pass pad-16 ===
+  R2-NAFNet-aug-seed1-200k       overall=30.640  bg=31.942  vessel=22.981
+  R2-NAFNet-aug-seed2-200k       overall=30.748  bg=32.064  vessel=23.074
+  R2-NAFNet-aug-seed3-200k       overall=30.731  bg=32.026  vessel=23.117
+  R2-NAFNet-aug-seed4-200k       overall=30.665  bg=31.970  vessel=23.045
+  R2-NAFNet-aug-seed5-200k       overall=30.634  bg=31.966  vessel=23.025
+  R26-MSNet-seed1-200k           overall=30.739  bg=32.042  vessel=23.079
+  R26-MSNet-seed2-200k           overall=30.652  bg=31.953  vessel=23.057
+  R26-MSNet-seed3-200k           overall=30.624  bg=31.934  vessel=22.989
+  R26-MSNet-seed4-200k           overall=30.723  bg=32.031  vessel=23.095
+  R26-MSNet-seed5-200k           overall=30.701  bg=32.011  vessel=23.080
+
+=== aggregate (mean +/- std over seeds) ===
+  baseline  overall  = 30.684 +/- 0.053  (n=5)
+  baseline  bg       = 31.993 +/- 0.050  (n=5)
+  baseline  vessel   = 23.048 +/- 0.051  (n=5)
+  MSNet     overall  = 30.688 +/- 0.048  (n=5)
+  MSNet     bg       = 31.994 +/- 0.048  (n=5)
+  MSNet     vessel   = 23.060 +/- 0.042  (n=5)
+  GAIN(MSNet-baseline) overall  = +0.004 +/- 0.098
+  GAIN(MSNet-baseline) bg       = +0.001 +/- 0.096
+  GAIN(MSNet-baseline) vessel   = +0.012 +/- 0.088
+
+NOTE: seeds are effective batch 16 (tab:main batch 24); use GAIN and STD, not absolute means.
+DONE

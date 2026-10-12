@@ -1,0 +1,99 @@
+# Training config for the MAROB-2500 maritime deblurring benchmark (BasicSR YAML).
+# See the README "Config -> paper mapping" table for this experiment's role.
+# The dataset (MaritimeDataset) applies on-the-fly severity re-blurring and also emits extra
+# degradation keys (ship_mask/code_gt/sigma_field); model_type ImageRestorationModel ignores them.
+name: S2-MIMO-aug-hardevalv3-200k
+model_type: ImageRestorationModel
+scale: 1
+num_gpu: 3
+manual_seed: 42
+
+datasets:
+  train:
+    name: maritime-hardevalv3-train-2000
+    type: MaritimeDataset
+    dataroot_gt: datasets/MAROB2500/train/sharp
+    dataroot_lq: datasets/MAROB2500/train/blur
+    manifest: datasets/MAROB2500/split_manifest.csv
+    manifest_split: train
+    severity_aug: true       # on-the-fly severity augmentation
+    ship_crop_prob: 0.5
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+    gt_size: 256
+    use_flip: true
+    use_rot: true
+
+    use_shuffle: true
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 8
+    dataset_enlarge_ratio: 1
+    prefetch_mode: ~
+
+  val:
+    name: maritime-hardevalv3-valid-250
+    type: MaritimeDataset
+    dataroot_gt: datasets/MAROB2500/valid/sharp
+    dataroot_lq: datasets/MAROB2500/valid/blur
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+network_g:
+  type: MIMOUNetWrap
+  num_res: 20        # MIMO-UNet+ standard config (16.1M ~ our 17M)
+  base_channel: 32
+
+path:
+  pretrain_network_g: ~
+  strict_load_g: true
+  resume_state: ~
+
+train:
+  optim_g:
+    type: AdamW
+    lr: !!float 1e-3
+    weight_decay: !!float 1e-3
+    betas: [0.9, 0.9]
+
+  scheduler:
+    type: TrueCosineAnnealingLR
+    T_max: 200000
+    eta_min: !!float 1e-7
+
+  total_iter: 200000
+  warmup_iter: -1
+
+  pixel_opt:
+    type: PSNRLoss
+    loss_weight: 1
+    reduction: mean
+
+val:
+  val_freq: !!float 5000
+  save_img: false
+  wandb_log_images: true
+  wandb_num_log_images: 4
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false
+
+logger:
+  print_freq: 200
+  save_checkpoint_freq: !!float 5000
+  use_tb_logger: true
+  wandb:
+    project: maritime-deblur
+    resume_id: ~
+
+dist_params:
+  backend: nccl
+  port: 29595

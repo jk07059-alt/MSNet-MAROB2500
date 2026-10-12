@@ -1,0 +1,7 @@
+=== LPIPS + detection eval (TEST, 250 imgs) ===
+  Sharp(GT)    LPIPS=0.0000   detection-rate=95.5%  (232/243 vessels)
+  Blurred      LPIPS=0.4999   detection-rate=51.0%  (124/243 vessels)
+  NAFNet+aug   LPIPS=0.3738   detection-rate=88.5%  (215/243 vessels)
+  MSNet        LPIPS=0.3710   detection-rate=89.3%  (217/243 vessels)
+  MIMO-UNet+   LPIPS=0.3844   detection-rate=90.5%  (220/243 vessels)
+Done.

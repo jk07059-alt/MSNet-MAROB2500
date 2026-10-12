@@ -1,0 +1,96 @@
+# Training config for the MAROB-2500 maritime deblurring benchmark (BasicSR YAML).
+# See the README "Config -> paper mapping" table for this experiment's role.
+# The dataset (MaritimeDataset) applies on-the-fly severity re-blurring and also emits extra
+# degradation keys (ship_mask/code_gt/sigma_field); model_type ImageRestorationModel ignores them.
+name: X6-Restormer-fair-maritime-200k
+model_type: ImageRestorationModel
+scale: 1
+num_gpu: 3
+manual_seed: 42
+
+datasets:
+  train:
+    name: maritime-hardevalv3-train-2000
+    type: MaritimeDataset
+    dataroot_gt: datasets/MAROB2500/train/sharp
+    dataroot_lq: datasets/MAROB2500/train/blur
+    manifest: datasets/MAROB2500/split_manifest.csv
+    manifest_split: train
+    severity_aug: true
+    ship_crop_prob: 0.5
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+    gt_size: 256
+    use_flip: true
+    use_rot: true
+
+    use_shuffle: true
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 2          # Restormer 26M @256: batch 3 OOM'd (23.6GB); 2x3=6 effective (~16GB, fits)
+    dataset_enlarge_ratio: 1
+    prefetch_mode: ~
+
+  val:
+    name: maritime-hardevalv3-valid-250
+    type: MaritimeDataset
+    dataroot_gt: datasets/MAROB2500/valid/sharp
+    dataroot_lq: datasets/MAROB2500/valid/blur
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+network_g:
+  type: RestormerWrap        # tiled inference on full-res val; standard dim 48 / [4,6,6,8] -> 26.13M
+
+path:
+  pretrain_network_g: ~
+  strict_load_g: true
+  resume_state: ~
+
+train:
+  use_grad_clip: false          # Restormer does NOT use the NAFNet-family 0.01 clip
+  optim_g:
+    type: AdamW
+    lr: !!float 3e-4            # Restormer-native LR
+    weight_decay: !!float 1e-4
+    betas: [0.9, 0.999]
+
+  scheduler:
+    type: TrueCosineAnnealingLR
+    T_max: 200000
+    eta_min: !!float 1e-7
+
+  total_iter: 200000
+  warmup_iter: -1
+
+  pixel_opt:
+    type: L1Loss               # Restormer-native loss
+    loss_weight: 1
+    reduction: mean
+
+val:
+  val_freq: !!float 20000
+  save_img: false
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false
+
+logger:
+  print_freq: 200
+  save_checkpoint_freq: !!float 20000
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~
+
+dist_params:
+  backend: nccl
+  port: 29615

@@ -1,0 +1,37 @@
+# Verified environment for MSNet / MAROB-2500 (Python 3.10, CUDA 12.1).
+# Install PyTorch first from the CUDA index, then the rest.
+#
+#   pip install torch==2.1.0 torchvision==0.16.0 --index-url https://download.pytorch.org/whl/cu121
+#   pip install -r requirements.txt
+#
+# numpy MUST stay < 2: torch 2.1 is built against the numpy 1.x ABI and segfaults on numpy 2.x.
+
+numpy<2                 # pinned: 1.26.4 verified
+opencv-python==4.13.0
+scipy==1.15.3
+scikit-image==0.25.2
+Pillow==12.1.1
+pyyaml==6.0.3
+tqdm==4.67.3
+einops==0.8.2
+
+# BasicSR framework deps (NAFNet fork; see INSTALL / setup.sh)
+addict
+future
+lmdb
+requests
+yapf
+
+# Perceptual + downstream-detection eval (scripts/eval_lpips_detection.py)
+lpips==0.1.4
+ultralytics==8.4.174    # YOLOv8; pulls its own torch-compatible deps
+
+# OPTIONAL -- only for building the benchmark from ROI boxes (ship_mask_blur_pipeline.py
+# --mask-mode sam2_bbox). NOT needed if you already have COCO segmentation masks
+# (--mask-mode annotation), nor for training/evaluation. Install from source:
+#   pip install "git+https://github.com/facebookresearch/sam2.git"
+# then pass --sam2-config / --sam2-checkpoint (download the SAM2 weights separately).
+
+# torch/torchvision are installed separately from the CUDA wheel index (see header):
+#   torch==2.1.0+cu121
+#   torchvision==0.16.0+cu121
