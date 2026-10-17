@@ -20,9 +20,9 @@ fast-moving vessels (local). We contribute:
 2. **Severity augmentation** — an on-the-fly re-blurring regularizer that lifts a strong baseline by
    **+0.94 dB overall / +1.61 dB on the vessel** (same-eval).
 3. **An information limit** — heavy object motion pushes ~**74%** of the vessel's spatial frequencies below
-   the 8-bit quantization floor, so oracle non-blind deconvolution (15.4–16.6 dB) scores *below* a blind
-   network (23.3 dB). The object region is physically bounded, not capacity-bounded.
-4. **MSNet** (Maritime Scene Network) — a lightweight directional-context module that matches the strong
+   the 8-bit quantization floor, so the best oracle non-blind deconvolution (18.5 dB, after a regularization sweep)
+   scores below both the blurred input (19.9 dB) and a blind network (23.3 dB).
+5. **MSNet** (Maritime Scene Network) — a lightweight directional-context module that matches the strong
    backbone and surpasses every Transformer/multi-scale baseline on overall & background PSNR at ~10× fewer
    FLOPs. On the object region it, like every method, cannot exceed the physical ceiling (no robust gain
    across 5 seeds) — exactly as the information limit predicts.
